@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Schoolwork</title>
+  <title>Simple Clicker Game</title>
   <style>
     body, dialog {
       font-family: Arial, sans-serif;
@@ -138,7 +138,6 @@
 <body>
 
 <h1>Simple Clicker Game</h1>
-<p>Designed for School Use</p>
 
 <!-- Tracking Headers -->
 <h2 id="scr">Score: 0</h2>
@@ -160,6 +159,7 @@
       clickvalue += 1; 
       pluscost = Math.round(pluscost * 1.5);
       updateUI();
+      saveGame();
     } else {
       alert('You don\'t have enough! Required: ' + (pluscost - Math.floor(score)) + ' points');
     }
@@ -172,6 +172,7 @@
       autoclick += 1; 
       oneautocost = Math.round(oneautocost * 1.5);
       updateUI();
+      saveGame();
     } else {
       alert('You don\'t have enough! Required: ' + (oneautocost - Math.floor(score)) + ' points');
     }
@@ -184,6 +185,7 @@
       clickvalue *= 2; 
       xtwocost = Math.round(xtwocost * 2.5);
       updateUI();
+      saveGame();
     } else {
       alert('You don\'t have enough! Required: ' + (xtwocost - Math.floor(score)) + ' points');
     }
@@ -196,6 +198,7 @@
       clickvalue += 10; 
       plustencost = Math.round(plustencost * 1.8); 
       updateUI();
+      saveGame();
     } else {
       alert('You don\'t have enough! Required: ' + (plustencost - Math.floor(score)) + ' points');
     }
@@ -208,6 +211,7 @@
       autoclick += 10; 
       tenautocost = Math.round(tenautocost * 2);
       updateUI();
+      saveGame();
     } else {
       alert('You don\'t have enough! Required: ' + (tenautocost - Math.floor(score)) + ' points');
     }
@@ -225,6 +229,7 @@
   <button class="bottom-btn" onclick="
     modecount++;
     document.getElementById('mode').innerText = (modecount % 2 == 0) ? 'Hard Mode: OFF' : 'Hard Mode: ON';
+    saveGame();
   ">Toggle Difficulty</button>
 
   <button class="bottom-btn" onclick="
@@ -289,6 +294,23 @@ function updateUI() {
   
   let tenAutoInfo = (score >= tenautocost) ? ' [CAN BUY!]' : ' (Need ' + (tenautocost - Math.floor(score)) + ' more)';
   document.getElementById('btn-plustenauto').innerText = '+10 Autoclick/Sec | Cost: ' + tenautocost + tenAutoInfo;
+}
+
+// Save and Load Functions
+function saveGame() {
+  localStorage.setItem("clickerSave", JSON.stringify({
+    score, autoclick, clickvalue, pluscost, xtwocost, plustencost, 
+    oneautocost, tenautocost, totalclicks, plusonepurchases, 
+    xtwopurchases, plustenpurchases, oneautopurchases, tenautopurchases,
+    modecount
+  }));
+}
+
+function loadGame() {
+  const saved = localStorage.getItem("clickerSave");
+  if (saved) {
+    Object.assign(window, JSON.parse(saved));
+  }
 }
 
 // Background autoclick engine
@@ -361,6 +383,7 @@ window.addEventListener("click", function(event) {
   score += pointsGained;
   resetcheck = 0;
   updateUI();
+  saveGame();
 
   let spawnX = event.pageX;
   let spawnY = event.pageY;
@@ -395,24 +418,13 @@ window.addEventListener("keydown", function(event) {
     clickvalue = Number(prompt("Enter click power:", clickvalue));
     autoclick = Number(prompt("Enter automated autoclicks per second:", autoclick));
     updateUI();
+    saveGame();
   }
 });
 
-function saveGame() {
-  localStorage.setItem("clickerSave", JSON.stringify({
-    score, autoclick, clickvalue, pluscost, xtwocost, plustencost, 
-    oneautocost, tenautocost, totalclicks, plusonepurchases, 
-    xtwopurchases, plustenpurchases, oneautopurchases, tenautopurchases
-  }));
-}
-
-function loadGame() {
-  const saved = localStorage.getItem("clickerSave");
-  if (saved) Object.assign(window, JSON.parse(saved));
-}
-
-// Load save and run initial UI load
+// Load saved data and initialize screen
 loadGame();
+document.getElementById('mode').innerText = (modecount % 2 === 0) ? 'Hard Mode: OFF' : 'Hard Mode: ON';
 updateUI();
 </script>
 
