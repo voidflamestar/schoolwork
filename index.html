@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Schoolwork</title>
   <style>
-    body {
+    body, dialog {
       font-family: Arial, sans-serif;
       padding: 20px;
       margin-bottom: 80px;
@@ -122,6 +122,17 @@
         transform: translate(-50%, -50%) translateY(-50px) scale(1.2);
       }
     }
+    
+    dialog {
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    dialog::backdrop {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
   </style>
 </head>
 <body>
@@ -222,6 +233,7 @@
 
   <button class="bottom-btn" onclick="
     if (resetcheck == 1) {
+      localStorage.removeItem('clickerSave');
       score = 0; autoclick = 0; pluscost = 50; xtwocost = 500; plustencost = 500; 
       oneautocost = 100; tenautocost = 1000; clickvalue = 1; modecount = 0; resetcheck = 0;
       totalclicks = 0; plusonepurchases = 0; xtwopurchases = 0; plustenpurchases = 0;
@@ -234,26 +246,28 @@
       alert('Warning: This will reset progress permanently! Press again to confirm.');
     }
   ">Click to Reset</button>
+  
+  <button class="bottom-btn" command="show-modal" commandfor="abilities">Abilities</button>
 </div>
 
 <script>
-// Game state variables
+// Game variables
 let score = 0;
 let autoclick = 0;
-let resetcheck = 0;
 let clickvalue = 1;
 let pluscost = 50;
 let xtwocost = 500;
 let plustencost = 500;
 let oneautocost = 100;
 let tenautocost = 1000;
-let modecount = 0;
 let totalclicks = 0;
 let plusonepurchases = 0;
 let xtwopurchases = 0;
 let plustenpurchases = 0;
 let oneautopurchases = 0;
 let tenautopurchases = 0;
+let modecount = 0;
+let resetcheck = 0;
 
 // Refreshes HUD labels and updates cost markers + buy indicators inside buttons
 function updateUI() {
@@ -277,7 +291,7 @@ function updateUI() {
   document.getElementById('btn-plustenauto').innerText = '+10 Autoclick/Sec | Cost: ' + tenautocost + tenAutoInfo;
 }
 
-// Background Autoclick Engine using Timestamp Delta tracking
+// Background autoclick engine
 let lastUpdate = Date.now();
 
 setInterval(function() {
@@ -289,10 +303,12 @@ setInterval(function() {
     updateUI();
   }
   
+  saveGame();
+  
   lastUpdate = now;
 }, 250);
 
-// Catches up immediately when switching tabs back
+// Autoclick engine; adds score from time missed
 document.addEventListener("visibilitychange", function() {
   if (!document.hidden) {
     let now = Date.now();
@@ -325,9 +341,11 @@ function spawnFloatingText(x, y, text) {
 // Global Click Listener
 window.addEventListener("click", function(event) {
   const target = event.target;
+  if (target.closest("dialog")) {
+    return;
+  }
   const isMainTarget = target.classList.contains("main-clicker");
 
-  // Ignore shop/utility buttons so buying items doesn't give click score
   if (!isMainTarget && target.tagName === "BUTTON") {
     return;
   }
@@ -380,9 +398,32 @@ window.addEventListener("keydown", function(event) {
   }
 });
 
-// Run initial UI load
+function saveGame() {
+  localStorage.setItem("clickerSave", JSON.stringify({
+    score, autoclick, clickvalue, pluscost, xtwocost, plustencost, 
+    oneautocost, tenautocost, totalclicks, plusonepurchases, 
+    xtwopurchases, plustenpurchases, oneautopurchases, tenautopurchases
+  }));
+}
+
+function loadGame() {
+  const saved = localStorage.getItem("clickerSave");
+  if (saved) Object.assign(window, JSON.parse(saved));
+}
+
+// Load save and run initial UI load
+loadGame();
 updateUI();
 </script>
+
+<!-- Abilities shop -->
+<dialog id="abilities">
+  <button style="font-size: 10px" command="close" commandfor="abilities">X</button>
+  <h2>Abilities</h2>
+  <h3>Active Click Power</h3>
+  <p>Earn click power for every click</p>
+  <button>Purchase</button>
+</dialog>
 
 </body>
 </html>
